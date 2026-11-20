@@ -25,6 +25,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # live 3D room test page, served at /lab/ next to the main site
+      - run: npx vite build -c vite.lab.config.ts --outDir dist/lab
+      - run: cp dist/lab/lab.html dist/lab/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -21,7 +21,7 @@ Renders live in `public/img/{day,night}/swing_±NN.webp`; scene constants in `sr
 ## Live 3D test page (`lab.html`)
 
 The next version of the room: baked Cycles lighting drawn in real time with React Three Fiber, so it stays sharp at any size.
-It is a separate entry (`lab.html`, `src/lab/`) with its own assets in `public-lab/rt/` and is **not** part of the deployed site yet.
+It is a separate entry (`lab.html`, `src/lab/`) with its own assets in `public-lab/rt/`. The deploy builds it into `/lab/` next to the main site: https://mendozaliner.github.io/noahmenendez.com/lab/
 
 - `npm run build:lab` builds it into `dist-lab/` (`lab.html` there is the page; serve the folder to view it).
 - `src/lab/Lab.tsx`: camera with snap-back, day/night crossfade (wall light switch), clickable props, wall clock on the visitor's local time.
