@@ -17,3 +17,13 @@ Interactive isometric office for Noah Menendez's personal site.
 
 Pushing to `main` builds and deploys to GitHub Pages via `.github/workflows/deploy.yml`.
 Renders live in `public/img/{day,night}/swing_±NN.webp`; scene constants in `src/scene.generated.ts`.
+
+## Live 3D test page (`lab.html`)
+
+The next version of the room: baked Cycles lighting drawn in real time with React Three Fiber, so it stays sharp at any size.
+It is a separate entry (`lab.html`, `src/lab/`) with its own assets in `public-lab/rt/` and is **not** part of the deployed site yet.
+
+- `npm run build:lab` builds it into `dist-lab/` (`lab.html` there is the page; serve the folder to view it).
+- `src/lab/Lab.tsx`: camera with snap-back, day/night crossfade (wall light switch), clickable props, wall clock on the visitor's local time.
+- `src/lab/hotspots.ts`: which prop opens which link (ids are baked into `public-lab/rt/room.json`).
+- `public-lab/rt/room.json`: packed room geometry; `rt_*.webp` / `rt_*_n.webp`: day / night lighting atlases.
