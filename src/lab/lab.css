@@ -1,4 +1,6 @@
-:root { color-scheme: dark; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+/* Page type: Times New Roman everywhere (the old Sora @font-face was dropped; fonts/sora-latin-wght-normal.woff2 is still on disk). */
+:root { color-scheme: dark; font-family: 'Times New Roman', Times, serif; }
+button, a, input { font-family: inherit; }
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; height: 100%; }
 body { overflow: hidden; background: #9499a0; }
@@ -13,22 +15,65 @@ body { overflow: hidden; background: #9499a0; }
   background: rgba(0,0,0,.18); color: #fff; font: inherit; font-size: 12px; letter-spacing: .08em; cursor: pointer;
 }
 .ui button.on { background: rgba(255,255,255,.9); color: #222; }
-.note { position: fixed; left: 16px; bottom: 14px; color: rgba(255,255,255,.85); font-size: 12px; letter-spacing: .04em; text-shadow: 0 1px 6px rgba(0,0,0,.35); pointer-events: none; }
-.loading { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; font-size: 13px; letter-spacing: .2em; text-transform: uppercase; pointer-events: none; }
+.loading { position: fixed; inset: 0; display: grid; place-items: center; color: #f6f8fa; font-size: 11px; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; pointer-events: none; }
 .ui button:disabled { opacity: .5; cursor: default; }
-/* light switch: pulsing hint ring (until first use) and a label on hover; the click target itself is computed in JS */
-.sw { position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; will-change: transform; display: none; }
-.sw.live { display: block; }
-.sw .ring { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.9); animation: swp 2.2s ease-out infinite; box-shadow: 0 0 8px rgba(0,0,0,.35); }
-.sw.used .ring { display: none; }
-@keyframes swp { 0% { transform: scale(.35); opacity: .95; } 100% { transform: scale(1.5); opacity: 0; } }
-.sw .tag { position: absolute; left: 16px; top: -34px; padding: 4px 9px; border-radius: 10px; background: rgba(0,0,0,.6); color: #fff; font-size: 11px; letter-spacing: .08em; white-space: nowrap; opacity: 0; transition: opacity .18s; }
-.sw.hover .tag { opacity: 1; }
+/* hot zones are invisible, except the light switch: each circle is only a click target (hit test in JS) and the cursor turns into a
+   pointer over it. The switch keeps its ring and label so visitors find the lights. Test flag ?zones=1 draws all of them. */
+.zone { display: none; }
+.zone.z-switch, body.show-zones .zone { display: block; }
+/* hot zones: a quiet ring at a point in the room; its area is the click target (hit test in JS). Label appears on hover. */
+.zone { position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; will-change: transform; opacity: 0; transition: opacity .6s .3s; }
+.zone.live { opacity: 1; }
+.zone .ring { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.08), 0 0 14px rgba(0,0,0,.18); background: radial-gradient(circle, rgba(255,255,255,.10), rgba(255,255,255,0) 70%);
+  animation: zone-breathe 3.6s ease-in-out infinite; transition: transform .28s cubic-bezier(.2,.8,.2,1), border-color .2s, background .2s; }
+.zone .dot { position: absolute; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(255,255,255,.9); box-shadow: 0 0 6px rgba(0,0,0,.35); }
+.zone.hover .ring { animation: none; transform: scale(1.28); border-color: #fff; background: radial-gradient(circle, rgba(255,255,255,.22), rgba(255,255,255,0) 72%); }
+@keyframes zone-breathe { 0%, 100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.06); opacity: 1; } }
+.zone .tag { position: absolute; left: 28px; top: -11px; padding: 5px 11px; border-radius: 999px; background: rgba(12,13,16,.78); backdrop-filter: blur(8px); color: #fff;
+  font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; opacity: 0; transform: translateX(-6px); transition: opacity .18s, transform .22s cubic-bezier(.2,.8,.2,1); }
+.zone.hover .tag { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .zone .ring { animation: none; } }
 
-/* clickable props: label that follows the mouse, and the link card used inside a sandboxed frame (artifact viewer) or when a popup is blocked */
-.hot-tag { position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; will-change: transform; }
-.hot-tag span { position: absolute; left: 14px; top: 14px; padding: 5px 10px; border-radius: 11px; background: rgba(0,0,0,.66); color: #fff; font-size: 12px; letter-spacing: .04em; white-space: nowrap; opacity: 0; transform: translateY(3px); transition: opacity .15s, transform .15s; }
-.hot-tag.on span { opacity: 1; transform: none; }
+/* page chrome: name top-left, hint bottom-left, links bottom-right. Light lettering in both modes (a soft shadow keeps it readable on the day grey). */
+.chrome { position: fixed; inset: 0; z-index: 5; pointer-events: none; color: #f6f8fa; text-shadow: 0 1px 10px rgba(20,24,30,.28); opacity: 0; transition: opacity .9s .2s, color .7s; }
+.chrome.in { opacity: 1; }
+.chrome.dark { color: #eef1f4; text-shadow: none; }
+.chrome > * { position: absolute; margin: 0; }
+.name { left: clamp(18px, 2.4vw, 36px); top: clamp(18px, 2.4vw, 32px); font-size: 13px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; }
+.hint { left: clamp(18px, 2.4vw, 36px); bottom: clamp(18px, 2.4vw, 30px); display: flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.hint .pip { width: 16px; height: 16px; border-radius: 50%; border: 1px solid currentColor; position: relative; opacity: .9; }
+.hint .pip::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: currentColor; }
+.links { right: clamp(18px, 2.4vw, 36px); bottom: clamp(18px, 2.4vw, 30px); display: flex; gap: clamp(8px, 1vw, 14px); pointer-events: auto; }
+.links a { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; color: inherit; text-decoration: none; opacity: .86; transition: opacity .25s, background .25s, transform .25s cubic-bezier(.2,.8,.2,1); }
+.links a:hover, .links a:focus-visible { opacity: 1; background: rgba(255,255,255,.16); transform: translateY(-2px); outline: none; }
+.links svg { display: block; }
+@media (max-width: 560px) { .hint { bottom: auto; top: calc(clamp(18px, 2.4vw, 32px) + 26px); } .links { right: 14px; } }
+
+/* the link card used inside a sandboxed frame (artifact viewer) or when a popup is blocked */
 .hot-card { position: fixed; z-index: 6; transform: translate(-50%, calc(-100% - 12px)); display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 18px; background: rgba(20,22,26,.88); box-shadow: 0 6px 24px rgba(0,0,0,.35); }
 .hot-card a { padding: 6px 12px; border-radius: 14px; background: #fff; color: #16181c; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
 .hot-card button { width: 28px; height: 28px; border: 0; border-radius: 14px; background: transparent; color: #fff; font-size: 18px; line-height: 1; cursor: pointer; }
+
+/* goalie-mask inspector (in the room): a small bar while the mask floats; the page lettering steps back */
+.chrome.away .hint, .chrome.away .links { opacity: 0; pointer-events: none; transition: opacity .3s; }
+.inspect { position: fixed; left: 50%; bottom: clamp(18px, 2.4vw, 30px); z-index: 6; transform: translate(-50%, 10px); display: flex; align-items: center; gap: 18px; padding: 8px 8px 8px 20px; border-radius: 999px;
+  background: rgba(12,13,16,.62); backdrop-filter: blur(10px); color: #eef1f4; font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; opacity: 0; pointer-events: none; transition: opacity .3s, transform .35s cubic-bezier(.2,.8,.2,1); }
+.inspect.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.inspect span { opacity: .75; }
+.inspect button { height: 30px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: inherit; font: inherit; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; }
+.inspect button:hover { background: rgba(255,255,255,.2); }
+
+/* goalie-mask inspector: a pop-up over the room (no new tab) */
+.mask-pop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px; background: rgba(6,7,9,.62); backdrop-filter: blur(14px) saturate(.9); animation: mask-in .28s ease-out; }
+.mask-card { position: relative; width: min(78vmin, 720px); border-radius: 22px; overflow: hidden; background: #0e0e10; box-shadow: 0 30px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); animation: mask-up .36s cubic-bezier(.2,.8,.2,1); }
+.mask-stage { aspect-ratio: 1; cursor: grab; touch-action: none; user-select: none; }
+.mask-stage.grab { cursor: grabbing; }
+.mask-stage video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.mask-bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; color: #eef1f4; font-size: 11px; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; pointer-events: none; background: linear-gradient(to top, rgba(8,9,11,.7), rgba(8,9,11,0)); }
+.mask-hint { opacity: .6; transition: opacity .4s; }
+.mask-hint.off { opacity: 0; }
+.mask-x { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); background: rgba(14,14,16,.55); color: #fff; font: inherit; font-size: 20px; line-height: 1; cursor: pointer; transition: background .2s, transform .2s; }
+.mask-x:hover { background: rgba(255,255,255,.16); transform: rotate(90deg); }
+@keyframes mask-in { from { opacity: 0; } }
+@keyframes mask-up { from { opacity: 0; transform: translateY(14px) scale(.97); } }
